@@ -1,0 +1,36 @@
+use std::collections::{HashMap, HashSet};
+use crate::models::Product;
+use crate::utils::tokenize;
+
+
+#[derive(Debug, Default)]
+pub struct InvertedIndex {
+pub postings: HashMap<String, HashSet<u64>>,
+}
+
+
+impl InvertedIndex {
+pub fn new() -> Self {
+Self { postings: HashMap::new() }
+}
+
+
+/// Indexa um slice de produtos (título + descrição + tags)
+pub fn index_products(&mut self, products: &[Product]) {
+for p in products {
+let mut tokens = tokenize(&format!("{} {}", p.title, p.description));
+// adicionar tags como tokens
+for tag in &p.tags {
+tokens.push(tag.to_lowercase());
+}
+for t in tokens {
+self.postings.entry(t).or_insert_with(HashSet::new).insert(p.id);
+}
+}
+}
+
+
+pub fn get_postings(&self, term: &str) -> Option<&HashSet<u64>> {
+self.postings.get(term)
+}
+}
